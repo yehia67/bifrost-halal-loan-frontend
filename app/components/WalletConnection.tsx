@@ -1,12 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { web3Accounts, web3Enable } from '@polkadot/extension-dapp';
-import { InjectedAccountWithMeta } from '@polkadot/extension-inject/types';
+
+interface InjectedAccount {
+  address: string;
+  meta: {
+    name?: string;
+    source: string;
+  };
+}
 
 export default function WalletConnection() {
-  const [accounts, setAccounts] = useState<InjectedAccountWithMeta[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<InjectedAccountWithMeta | null>(null);
+  const [accounts, setAccounts] = useState<InjectedAccount[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<InjectedAccount | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +22,9 @@ export default function WalletConnection() {
     setError(null);
     
     try {
+      // Dynamic import to avoid SSR issues
+      const { web3Enable, web3Accounts } = await import('@polkadot/extension-dapp');
+      
       // Enable the extension
       const extensions = await web3Enable('Bifrost Halal Loan');
       
@@ -59,7 +68,7 @@ export default function WalletConnection() {
 
       {!isConnected ? (
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className="text-gray-800">
             Connect your Polkadot wallet to interact with the network
           </p>
           
@@ -96,11 +105,11 @@ export default function WalletConnection() {
                   Selected Account
                 </label>
                 <div className="p-3 bg-gray-50 border rounded">
-                  <div className="font-medium">{selectedAccount.meta.name}</div>
-                  <div className="text-sm text-gray-600 font-mono">
+                  <div className="font-medium text-gray-900">{selectedAccount.meta.name}</div>
+                  <div className="text-sm text-gray-800 font-mono">
                     {selectedAccount.address}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-700 mt-1">
                     Short: {formatAddress(selectedAccount.address)}
                   </div>
                 </div>
@@ -130,7 +139,7 @@ export default function WalletConnection() {
             </div>
           )}
 
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-800">
             Found {accounts.length} account{accounts.length !== 1 ? 's' : ''}
           </div>
         </div>

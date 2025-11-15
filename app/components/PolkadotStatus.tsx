@@ -4,7 +4,7 @@ import { usePolkadot } from '../contexts/PolkadotContext';
 import { NETWORK_CONFIG } from '../lib/polkadot';
 
 export default function PolkadotStatus() {
-  const { api, status, blockNumber, error, reconnect } = usePolkadot();
+  const { status, blockNumber, error, reconnect } = usePolkadot();
 
   const getStatusColor = () => {
     switch (status) {
@@ -32,35 +32,35 @@ export default function PolkadotStatus() {
       
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="font-medium">Connection Status:</span>
+          <span className="font-medium text-gray-900">Connection Status:</span>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="font-medium">Network:</span>
-          <span className="text-gray-700">{NETWORK_CONFIG.name}</span>
+          <span className="font-medium text-gray-900">Network:</span>
+          <span className="text-gray-800">{NETWORK_CONFIG.name}</span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="font-medium">RPC Endpoint:</span>
-          <span className="text-gray-700 font-mono text-sm">{NETWORK_CONFIG.rpc}</span>
+          <span className="font-medium text-gray-900">RPC Endpoint:</span>
+          <span className="text-gray-800 font-mono text-sm">{NETWORK_CONFIG.rpc}</span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="font-medium">Symbol:</span>
-          <span className="text-gray-700 font-semibold">{NETWORK_CONFIG.symbol}</span>
+          <span className="font-medium text-gray-900">Symbol:</span>
+          <span className="text-gray-800 font-semibold">{NETWORK_CONFIG.symbol}</span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="font-medium">Decimals:</span>
-          <span className="text-gray-700">{NETWORK_CONFIG.decimals}</span>
+          <span className="font-medium text-gray-900">Decimals:</span>
+          <span className="text-gray-800">{NETWORK_CONFIG.decimals}</span>
         </div>
 
         {status === 'connected' && (
           <div className="flex justify-between items-center">
-            <span className="font-medium">Current Block:</span>
+            <span className="font-medium text-gray-900">Current Block:</span>
             <span className="text-blue-600 font-mono">#{blockNumber}</span>
           </div>
         )}

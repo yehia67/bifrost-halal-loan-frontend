@@ -1,5 +1,9 @@
 import PolkadotStatus from "./components/PolkadotStatus";
 import WalletConnection from "./components/WalletConnection";
+import Dashboard from "./components/Dashboard";
+import DepositBalance from "./components/DepositBalance";
+import PalletBalance from "./components/PalletBalance";
+import ClientOnly from "./components/ClientOnly";
 
 export default function Home() {
   return (
@@ -9,15 +13,39 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Bifrost Halal Loan Platform
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 mb-4">
             Sharia-compliant lending powered by Polkadot blockchain
           </p>
+          
+          {/* Project Description */}
+          <div className="bg-white rounded-lg shadow-md p-6 border max-w-3xl mx-auto text-left">
+            <h2 className="text-xl font-semibold mb-3">About This Project</h2>
+            <p className="text-gray-700 leading-relaxed">
+              This platform provides a <strong>100% Sharia-compliant</strong> lending solution built on Polkadot. 
+              Borrowers deposit vToken collateral (like vDOT, vKSM) and receive loans without any interest or fees. 
+              They repay exactly what they borrowed - nothing more. The platform generates revenue exclusively 
+              from staking rewards earned on the locked collateral, ensuring complete adherence to Islamic finance principles.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">✅ No Interest</span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">✅ No Fees</span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">✅ Halal Revenue Model</span>
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">🔗 Polkadot Native</span>
+            </div>
+          </div>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <PolkadotStatus />
-          <WalletConnection />
-        </div>
+        <ClientOnly fallback={<div className="text-center py-8">Loading...</div>}>
+          <div className="grid gap-6 md:grid-cols-2">
+            <PolkadotStatus />
+            <WalletConnection />
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <DepositBalance />
+            <PalletBalance />
+          </div>
+        </ClientOnly>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="bg-white rounded-lg shadow-md p-6 border">
@@ -45,6 +73,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Main Dashboard */}
+        <ClientOnly fallback={<div className="text-center py-8">Loading Dashboard...</div>}>
+          <div className="mt-8">
+            <Dashboard />
+          </div>
+        </ClientOnly>
 
         <div className="mt-8 bg-white rounded-lg shadow-md p-6 border">
           <h2 className="text-xl font-semibold mb-4">📋 Network Information</h2>
