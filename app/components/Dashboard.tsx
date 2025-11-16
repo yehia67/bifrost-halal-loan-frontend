@@ -280,9 +280,6 @@ function AdminDashboard() {
           </table>
         </div>
 
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Claim Platform Rewards
-        </button>
       </div>
     </div>
   );
@@ -463,20 +460,55 @@ function BorrowerDashboard() {
           return matches;
         });
         
+        console.log('Filtered loans (before formatting):', filteredLoans);
+        console.log('Number of filtered loans:', filteredLoans.length);
+        
         // Format for display - show parsed values alongside raw amounts
         userLoans = filteredLoans.map(loan => {
-          // Parse amounts by dividing by 10^12
-          const collateralParsed = (BigInt(loan.collateralAmount || '0') / BigInt(10**12)).toString();
-          const loanParsed = (BigInt(loan.loanAmount || '0') / BigInt(10**12)).toString();
+          console.log('Formatting loan for display:', loan);
           
-          return {
-            id: loan.id,
-            collateral: `${collateralParsed} vDOT (${loan.collateralAmount} raw)`,
-            borrowed: `${loanParsed} DOT (${loan.loanAmount} raw)`,
-            toRepay: `${loanParsed} DOT (${loan.loanAmount} raw)`,
-            ltv: loan.ltv !== 'N/A' ? `${loan.ltv}%` : 'N/A',
-            status: loan.status || 'Active'
-          };
+          try {
+            // Parse amounts by dividing by 10^12
+            const collateralAmount = loan.collateralAmount || '0';
+            const loanAmount = loan.loanAmount || '0';
+            
+            console.log('Raw amounts:', { collateralAmount, loanAmount });
+            
+            // Handle case where amounts might be strings with commas or other formatting
+            const cleanCollateral = collateralAmount.toString().replace(/,/g, '');
+            const cleanLoan = loanAmount.toString().replace(/,/g, '');
+            
+            const collateralParsed = (BigInt(cleanCollateral) / BigInt(10**12)).toString();
+            const loanParsed = (BigInt(cleanLoan) / BigInt(10**12)).toString();
+            
+            console.log('Parsed amounts:', { collateralParsed, loanParsed });
+            
+            // Determine loan status: if both borrowed and repay amounts are 0, then loan is repaid
+            let loanStatus = loan.status || 'Active';
+            if (loanParsed === '0' && loanParsed === '0') {
+              loanStatus = 'Repaid';
+            }
+            
+            return {
+              id: loan.id,
+              collateral: `${collateralParsed} vDOT (${collateralAmount} raw)`,
+              borrowed: `${loanParsed} DOT (${loanAmount} raw)`,
+              toRepay: `${loanParsed} DOT (${loanAmount} raw)`,
+              ltv: loan.ltv !== 'N/A' ? `${loan.ltv}%` : 'N/A',
+              status: loanStatus
+            };
+          } catch (error) {
+            console.error('Error formatting loan amounts:', error, loan);
+            // Fallback to raw display if parsing fails
+            return {
+              id: loan.id,
+              collateral: `${loan.collateralAmount} vDOT (raw)`,
+              borrowed: `${loan.loanAmount} DOT (raw)`,
+              toRepay: `${loan.loanAmount} DOT (raw)`,
+              ltv: loan.ltv !== 'N/A' ? `${loan.ltv}%` : 'N/A',
+              status: loan.status || 'Active'
+            };
+          }
         });
         
       } catch (err) {
@@ -497,13 +529,19 @@ function BorrowerDashboard() {
               const collateralParsed = (BigInt(collateralAmount) / BigInt(10**12)).toString();
               const loanParsed = (BigInt(loanAmount) / BigInt(10**12)).toString();
               
+              // Determine loan status: if both borrowed and repay amounts are 0, then loan is repaid
+              let loanStatus = loan.status?.toString() || 'Active';
+              if (loanParsed === '0' && loanParsed === '0') {
+                loanStatus = 'Repaid';
+              }
+              
               return {
                 id: loanId.toString(),
                 collateral: `${collateralParsed} vDOT (${collateralAmount} raw)`,
                 borrowed: `${loanParsed} DOT (${loanAmount} raw)`,
                 toRepay: `${loanParsed} DOT (${loanAmount} raw)`,
                 ltv: loan.ltv ? `${loan.ltv.toString()}%` : 'N/A',
-                status: loan.status?.toString() || 'Active'
+                status: loanStatus
               };
             });
             userLoans = await Promise.all(loanPromises);
@@ -530,13 +568,19 @@ function BorrowerDashboard() {
                   const collateralParsed = (BigInt(collateralAmount) / BigInt(10**12)).toString();
                   const loanParsed = (BigInt(loanAmount) / BigInt(10**12)).toString();
                   
+                  // Determine loan status: if both borrowed and repay amounts are 0, then loan is repaid
+                  let loanStatus = loan.status?.toString() || 'Active';
+                  if (loanParsed === '0' && loanParsed === '0') {
+                    loanStatus = 'Repaid';
+                  }
+                  
                   return {
                     id: i.toString(),
                     collateral: `${collateralParsed} vDOT (${collateralAmount} raw)`,
                     borrowed: `${loanParsed} DOT (${loanAmount} raw)`,
                     toRepay: `${loanParsed} DOT (${loanAmount} raw)`,
                     ltv: loan.ltv ? `${loan.ltv.toString()}%` : 'N/A',
-                    status: loan.status?.toString() || 'Active'
+                    status: loanStatus
                   };
                 }
                 return null;
@@ -854,7 +898,7 @@ function BorrowerDashboard() {
                 <th className="px-4 py-2 text-left text-sm font-medium text-black">Collateral</th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-black">Borrowed</th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-black">To Repay</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">LTV</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black">Status</th>
                 <th className="px-4 py-2 text-left text-sm font-medium text-black">Action</th>
               </tr>
             </thead>
@@ -872,7 +916,7 @@ function BorrowerDashboard() {
                     <td className="px-4 py-2 text-black">{loan.collateral}</td>
                     <td className="px-4 py-2 text-black">{loan.borrowed}</td>
                     <td className="px-4 py-2 text-black">{loan.toRepay}</td>
-                    <td className="px-4 py-2 text-black">{loan.ltv}</td>
+                    <td className="px-4 py-2 text-black">{loan.status}</td>
                     <td className="px-4 py-2">
                       <button 
                         onClick={() => repayLoan(loan.id)}

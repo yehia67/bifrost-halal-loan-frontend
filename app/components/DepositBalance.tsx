@@ -151,7 +151,7 @@ export default function DepositBalance() {
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Pallet Address
             </label>
-            <div className="p-2 bg-gray-50 border rounded font-mono text-sm text-gray-800">
+            <div className="p-2 bg-gray-50 border rounded font-mono text-xs text-gray-800 break-all">
               {palletAddress || 'Loading...'}
             </div>
             <div className="mt-1 flex gap-2">
