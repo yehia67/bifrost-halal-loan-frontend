@@ -106,7 +106,7 @@ export default function WalletConnection() {
                 </label>
                 <div className="p-3 bg-gray-50 border rounded">
                   <div className="font-medium text-gray-900">{selectedAccount.meta.name}</div>
-                  <div className="text-sm text-gray-800 font-mono">
+                  <div className="text-sm text-gray-800 font-mono break-all">
                     {selectedAccount.address}
                   </div>
                   <div className="text-xs text-gray-700 mt-1">

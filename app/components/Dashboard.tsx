@@ -169,8 +169,12 @@ function AdminDashboard() {
           });
           
           // Parse amounts by dividing by 10^12
-          const collateralParsed = (BigInt(loan.collateralAmount || '0') / BigInt(10**12)).toString();
-          const loanParsed = (BigInt(loan.loanAmount || '0') / BigInt(10**12)).toString();
+          // Handle case where amounts might be strings with commas or other formatting
+          const cleanCollateral = (loan.collateralAmount || '0').toString().replace(/,/g, '');
+          const cleanLoan = (loan.loanAmount || '0').toString().replace(/,/g, '');
+          
+          const collateralParsed = (BigInt(cleanCollateral) / BigInt(10**12)).toString();
+          const loanParsed = (BigInt(cleanLoan) / BigInt(10**12)).toString();
           
           return {
             id: loan.id,
@@ -637,8 +641,17 @@ function BorrowerDashboard() {
       const collateralDecimals = 12; // Assuming 12 decimals for vTokens
       const loanDecimals = 12; // Using 12 decimals for consistency
       
-      const collateralInUnits = api.createType('Balance', parseFloat(collateralAmount) * Math.pow(10, collateralDecimals));
-      const loanInUnits = api.createType('Balance', parseFloat(loanAmount) * Math.pow(10, loanDecimals));
+      // Use string-based conversion to avoid JavaScript number precision issues
+      // For large amounts, parseFloat * Math.pow can exceed MAX_SAFE_INTEGER
+      const convertToUnits = (amount: string, decimals: number): string => {
+        const amountStr = parseFloat(amount).toString();
+        const [integerPart, decimalPart = ''] = amountStr.split('.');
+        const paddedDecimal = decimalPart.padEnd(decimals, '0').slice(0, decimals);
+        return integerPart + paddedDecimal;
+      };
+      
+      const collateralInUnits = api.createType('Balance', convertToUnits(collateralAmount, collateralDecimals));
+      const loanInUnits = api.createType('Balance', convertToUnits(loanAmount, loanDecimals));
 
       // IMPORTANT: Always use currency ID 0 (DOT) regardless of UI selection
       // This is hardcoded because the pallet runtime only supports DOT
@@ -858,7 +871,7 @@ function BorrowerDashboard() {
         {/* Success Display */}
         {success && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-            <p className="text-green-700 text-sm">{success}</p>
+            <p className="text-green-700 text-sm break-words">{success}</p>
           </div>
         )}
 
@@ -890,16 +903,16 @@ function BorrowerDashboard() {
             {loansLoading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
-        <div className="border rounded">
-          <table className="w-full">
+        <div className="border rounded overflow-hidden">
+          <table className="w-full table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">Loan ID</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">Collateral</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">Borrowed</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">To Repay</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">Status</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-black">Action</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-16">Loan ID</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-32">Collateral</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-32">Borrowed</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-32">To Repay</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-20">Status</th>
+                <th className="px-4 py-2 text-left text-sm font-medium text-black w-24">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -912,16 +925,22 @@ function BorrowerDashboard() {
               ) : loans.length > 0 ? (
                 loans.map((loan, index) => (
                   <tr key={loan.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-4 py-2 text-black">{loan.id}</td>
-                    <td className="px-4 py-2 text-black">{loan.collateral}</td>
-                    <td className="px-4 py-2 text-black">{loan.borrowed}</td>
-                    <td className="px-4 py-2 text-black">{loan.toRepay}</td>
-                    <td className="px-4 py-2 text-black">{loan.status}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 text-black truncate">{loan.id}</td>
+                    <td className="px-4 py-2 text-black truncate text-xs">{loan.collateral}</td>
+                    <td className="px-4 py-2 text-black truncate text-xs">{loan.borrowed}</td>
+                    <td className="px-4 py-2 text-black truncate text-xs">{loan.toRepay}</td>
+                    <td className="px-4 py-2 text-black">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        loan.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {loan.status}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2">
                       <button 
                         onClick={() => repayLoan(loan.id)}
                         disabled={repayingLoanId === loan.id}
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-full"
                       >
                         {repayingLoanId === loan.id ? 'Repaying...' : 'Repay'}
                       </button>

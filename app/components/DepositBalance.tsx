@@ -66,7 +66,16 @@ export default function DepositBalance() {
         decimals = 6;
       }
       
-      const amountInUnits = api.createType('Balance', parseFloat(amount) * Math.pow(10, decimals));
+      // Use string-based conversion to avoid JavaScript number precision issues
+      // For large amounts, parseFloat * Math.pow can exceed MAX_SAFE_INTEGER
+      const amountStr = parseFloat(amount).toString();
+      const [integerPart, decimalPart = ''] = amountStr.split('.');
+      
+      // Pad decimal part to required decimals or truncate if longer
+      const paddedDecimal = decimalPart.padEnd(decimals, '0').slice(0, decimals);
+      const fullAmountStr = integerPart + paddedDecimal;
+      
+      const amountInUnits = api.createType('Balance', fullAmountStr);
 
       // Create transfer extrinsic with proper error checking
       let transfer;
@@ -214,7 +223,7 @@ export default function DepositBalance() {
           {/* Success Display */}
           {success && (
             <div className="p-3 bg-green-50 border border-green-200 rounded">
-              <p className="text-green-700 text-sm">{success}</p>
+              <p className="text-green-700 text-sm break-words">{success}</p>
             </div>
           )}
 
